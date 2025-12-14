@@ -4,6 +4,7 @@ import { getSkinImages } from "./skinShapes.mjs";
 export class Skin {
 
     static offScreenCanvas = new OffscreenCanvas(1, 1);
+    static properties = new Set(['layers', 'bc']);
 
     constructor() {
         this.layers = [];
@@ -111,6 +112,16 @@ export class Skin {
     }
 
     static fromJSON(json) {
+        for (let key of Object.keys(json)) {
+            if (!Skin.properties.has(key)) {
+                throw new Error(`Unknown property in Skin JSON: ${key}`);
+            }
+        }
+        for(let property of Skin.properties) {
+            if (!(property in json)) {
+                throw new Error(`Missing property in Skin JSON: ${property}`);
+            }
+        }
         const skin = new Skin();
         skin.layers = json.layers;
         for (let i = 0; i < skin.layers.length; i++) {
