@@ -1,4 +1,7 @@
 export class Layer {
+
+    static properties = new Set(['id', 'scale', 'angle', 'x', 'y', 'flipX', 'flipY', 'color']);
+
     constructor(id) {
         this.id = id;
         this.scale = 0.25;
@@ -12,6 +15,16 @@ export class Layer {
 
 
     static fromJSON(json){
+        for (let key of Object.keys(json)) {
+            if (!Layer.properties.has(key)) {
+                throw new Error(`Unknown property in Layer JSON: ${key}`);
+            }
+        }
+        for(let property of Layer.properties) {
+            if (!(property in json)) {
+                throw new Error(`Missing property in Layer JSON: ${property}`);
+            }
+        }
         const layer = new Layer(json.id);
         layer.scale = json.scale;
         layer.angle = json.angle;
