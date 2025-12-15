@@ -44,6 +44,7 @@ canvas.addEventListener('wheel', (e) => {
     const zoomFactor = Math.exp(0.003 * e.deltaY);
     const oldScale = scale;
     scale *= zoomFactor;
+    scale = Math.min(Math.max(scale, 0.1), 100000);
     const worldX = (mouseX - offsetX) / oldScale;
     const worldY = (mouseY - offsetY) / oldScale;
     offsetX = mouseX - worldX * scale;
@@ -53,6 +54,37 @@ canvas.addEventListener('wheel', (e) => {
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
+let old = {
+    scale: scale,
+    offsetX: offsetX,
+    offsetY: offsetY,
+    skinJSON: JSON.stringify(skin.toJSON()),
+    screenWidth: canvas.width,
+    screenHeight: canvas.height,
+    firstTime: true
+}
+
+function hasChanged() {
+    return old.scale !== scale ||
+        old.offsetX !== offsetX ||
+        old.offsetY !== offsetY ||
+        old.skinJSON !== JSON.stringify(skin.toJSON()) ||
+        old.screenWidth !== canvas.width ||
+        old.screenHeight !== canvas.height ||
+        (notifications.length > 0) ||
+        old.firstTime;
+}
+
+function updateOld() {
+    old.scale = scale;
+    old.offsetX = offsetX;
+    old.offsetY = offsetY;
+    old.skinJSON = JSON.stringify(skin.toJSON());
+    old.screenWidth = canvas.width;
+    old.screenHeight = canvas.height;
+    old.firstTime = false;
+}
+
 let notifications = [];
 
 function addNotification(message, duration = 2000, color) {
@@ -64,27 +96,33 @@ function addNotification(message, duration = 2000, color) {
 }
 
 async function animate() {
-    ctx.fillStyle = '#1E3246';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    await skin.draw(ctx, canvas.height * 0.4, offsetX, offsetY, scale);
 
-    ctx.fillStyle = 'white';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Drag to move, Scroll to zoom, Press Shift+D to download skin, Press Shift+F to import text file`, 10, 20);
-    ctx.fillText(`Press Shift+T to enter JSON text, Press Shift+S to enter skin string, Press Shift+C to copy skin string`, 10, 40);
-
-    let notifY = 80;
-    for (const notif of notifications) {
-        const elapsed = Date.now() - notif.time;
-        if (elapsed < notif.duration) {
-            ctx.globalAlpha = Math.pow(1 - (elapsed / notif.duration), 0.33);
-            ctx.fillStyle = notif.color || 'yellow';
-            ctx.fillText(notif.message, 10, notifY);
-            ctx.globalAlpha = 1.0;
-            notifY += 20;
+    if (hasChanged()) {
+        ctx.fillStyle = '#1E3246';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await skin.draw(ctx, canvas.height * 0.4, offsetX, offsetY, scale);
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.fillText(`Drag to move, Scroll to zoom, Press Shift+D to download skin, Press Shift+F to import text file`, 10, 20);
+        ctx.fillText(`Press Shift+T to enter JSON text, Press Shift+S to enter skin string, Press Shift+C to copy skin string`, 10, 40);
+        let notifY = 80;
+        for (const notif of notifications) {
+            const elapsed = Date.now() - notif.time;
+            if (elapsed < notif.duration) {
+                ctx.globalAlpha = Math.pow(1 - (elapsed / notif.duration), 0.33);
+                ctx.fillStyle = notif.color || 'yellow';
+                ctx.fillText(notif.message, 10, notifY);
+                ctx.globalAlpha = 1.0;
+                notifY += 20;
+            }
         }
     }
+    updateOld();
+
+
+
+
 
     requestAnimationFrame(animate);
 }

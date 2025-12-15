@@ -14,13 +14,13 @@ export class Layer {
     }
 
 
-    static fromJSON(json){
+    static fromJSON(json) {
         for (let key of Object.keys(json)) {
             if (!Layer.properties.has(key)) {
                 throw new Error(`Unknown property in Layer JSON: ${key}`);
             }
         }
-        for(let property of Layer.properties) {
+        for (let property of Layer.properties) {
             if (!(property in json)) {
                 throw new Error(`Missing property in Layer JSON: ${property}`);
             }
@@ -36,15 +36,39 @@ export class Layer {
         return layer;
     }
 
+    toJSON() {
+        return {
+            id: this.id,
+            scale: this.scale,
+            angle: this.angle,
+            x: this.x,
+            y: this.y,
+            flipX: this.flipX,
+            flipY: this.flipY,
+            color: this.color
+        };
+    }
+
+    copy() {
+        const newLayer = new Layer(this.id);
+        newLayer.scale = this.scale;
+        newLayer.angle = this.angle;
+        newLayer.x = this.x;
+        newLayer.y = this.y;
+        newLayer.flipX = this.flipX;
+        newLayer.flipY = this.flipY;
+        newLayer.color = this.color;
+        return newLayer;
+    }
 
     static fromDataView(dataView, offset) {
         const layer = new Layer(0);
         let letter = (dataView.getUint8(offset)).toString(16);
         offset += 1;
-        if(letter != "a"){
+        if (letter != "a") {
             return [layer, offset];
         }
-        if(dataView.getUint8(offset) == 7){
+        if (dataView.getUint8(offset) == 7) {
             offset += 3;
         }
         offset += 3;
