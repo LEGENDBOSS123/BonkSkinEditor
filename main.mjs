@@ -71,9 +71,10 @@ async function animate() {
 
     ctx.fillStyle = 'white';
     ctx.font = '16px Arial';
-    ctx.fillText('Drag to move, Scroll to zoom, Press D to download skin, Press I to import text file, Press T to enter JSON text', 10, 20);
+    ctx.fillText(`Drag to move, Scroll to zoom, Press Shift+D to download skin, Press Shift+F to import text file`, 10, 20);
+    ctx.fillText(`Press Shift+T to enter JSON text, Press Shift+S to enter skin string, Press Shift+C to copy skin string`, 10, 40);
 
-    let notifY = 40;
+    let notifY = 80;
     for (const notif of notifications) {
         const elapsed = Date.now() - notif.time;
         if (elapsed < notif.duration) {
@@ -108,18 +109,37 @@ function loadSkinFromTxt(txt) {
 }
 
 document.addEventListener('keydown', async (e) => {
+    if (!e.shiftKey) {
+        return;
+    }
     let txt;
     switch (e.code) {
         case 'KeyD':
-            skin.download(64, 'skin.png');
+            skin.download(1024, 'skin.png');
             break;
-        case "KeyI":
+        case "KeyF":
             txt = await FileImporter.text();
             loadSkinFromTxt(txt);
             break;
         case "KeyT":
             txt = prompt("Enter skin JSON:");
             loadSkinFromTxt(txt);
+            break;
+        case "KeyS":
+            txt = prompt("Enter skin string:");
+            try {
+                skin = Skin.fromString(txt);
+                addNotification("Skin imported successfully", 3000, "lightgreen");
+            }
+            catch (err) {
+                addNotification("Error importing skin: " + err.message, 3000, "red");
+            }
+            break;
+        case "KeyC":
+            const skinString = skin.toString();
+            navigator.clipboard.writeText(skinString);
+            addNotification("Skin string copied to clipboard", 3000, "lightgreen");
+            addNotification(skinString, 3000);
             break;
     }
 });

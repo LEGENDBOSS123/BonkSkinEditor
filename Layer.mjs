@@ -35,4 +35,35 @@ export class Layer {
         layer.color = json.color;
         return layer;
     }
+
+
+    static fromDataView(dataView, offset) {
+        const layer = new Layer(0);
+        let letter = (dataView.getUint8(offset)).toString(16);
+        offset += 1;
+        if(letter != "a"){
+            return [layer, offset];
+        }
+        if(dataView.getUint8(offset) == 7){
+            offset += 3;
+        }
+        offset += 3;
+        layer.id = dataView.getUint16(offset);
+        offset += 2;
+        layer.scale = dataView.getFloat32(offset);
+        offset += 4;
+        layer.angle = dataView.getFloat32(offset);
+        offset += 4;
+        layer.x = dataView.getFloat32(offset);
+        offset += 4;
+        layer.y = dataView.getFloat32(offset);
+        offset += 4;
+        layer.flipX = dataView.getUint8(offset) !== 0;
+        offset += 1;
+        layer.flipY = dataView.getUint8(offset) !== 0;
+        offset += 1;
+        layer.color = dataView.getUint32(offset);
+        offset += 4;
+        return [layer, offset];
+    }
 }
