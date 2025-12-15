@@ -131,6 +131,22 @@ export class Skin {
         return skin;
     }
 
+    toJSON(){
+        return {
+            layers: this.layers.map(layer => layer.toJSON()),
+            bc: this.bc
+        };
+    }
+
+    copy() {
+        const newSkin = new Skin();
+        newSkin.bc = this.bc;
+        for (const layer of this.layers) {
+            newSkin.layers.push(layer.copy());
+        }
+        return newSkin;
+    }
+
     toString() {
         let view = new DataView(new ArrayBuffer(1024));
         let offset = 0;
