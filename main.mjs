@@ -119,11 +119,6 @@ async function animate() {
         }
     }
     updateOld();
-
-
-
-
-
     requestAnimationFrame(animate);
 }
 
